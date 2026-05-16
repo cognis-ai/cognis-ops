@@ -83,6 +83,10 @@ Default = **Pattern A (Bridge proxy)**. Cognis portal calls Bridge; Bridge holds
 
 Pattern B (direct opensre dashboard with Clerk auth in the fork) only if a future product decision requires it. One file: `app/cognis/auth.py`.
 
+## Cost policy
+
+This fork inherits Cognis's managed-SaaS cost policy — see `../cognis-platform/docs/specs/cost-policy.md` for the full per-fork list and rationale. For `cognis-ops` specifically, in production deploys DO NOT set: `LANGSMITH_API_KEY`, `SENTRY_DSN`. The upstream LangSmith deps stay inert without the key; LangSmith → Langfuse is a productization-time code swap tracked separately.
+
 ## What NOT to do
 
 - Don't `import openai` / `import anthropic` / `import litellm` directly here — route through Bridge / `@cognis/llm-client`
