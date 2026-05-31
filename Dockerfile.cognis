@@ -1,0 +1,41 @@
+# =============================================================================
+# Cognis Ops — Docker image
+# Wraps upstream's opensre build with the Cognis CLI entrypoint
+# (app.cognis.cli:main) + COGNIS_BRANDING=on default + Sentry/LangSmith DSNs
+# explicitly UNSET per cognis-platform/docs/specs/cost-policy.md.
+# =============================================================================
+FROM langchain/langgraph-api:3.11 AS release
+
+LABEL maintainer="Cognis AI <support@cognisai.com>"
+LABEL org.opencontainers.image.source="https://github.com/cognis-ai/cognis-ops"
+LABEL org.opencontainers.image.title="Cognis Ops"
+LABEL org.opencontainers.image.description="Cognis Ops — packaged AI worker that investigates production incidents. Forked from Tracer-Cloud/opensre (Apache-2.0)."
+LABEL org.opencontainers.image.vendor="Cognis AI"
+
+ARG BRANCH=""
+ARG COMMIT=""
+ARG BUILD_DATE=""
+LABEL branch=${BRANCH}
+LABEL commit=${COMMIT}
+LABEL date=${BUILD_DATE}
+
+# Cognis defaults — overridable at runtime via env. The DSN/key absence
+# entries below are explicit reminders, not requirements (the SDKs are inert
+# without them set anyway). Per cost-policy.md.
+ENV COGNIS_BRANDING=on \
+    COGNIS_PRODUCT_NAME="Cognis Ops" \
+    COGNIS_DOCS_URL="https://cognisai.com/docs/ops" \
+    COGNIS_PORTAL_URL="https://app.cognisai.com/dashboard/ops" \
+    COGNIS_SUPPORT_EMAIL="support@cognisai.com" \
+    SENTRY_DSN="" \
+    LANGSMITH_API_KEY="" \
+    LANGCHAIN_TRACING_V2="false"
+
+# Cognis entrypoint: drives the bot from Bridge when COGNIS_BRIDGE_URL +
+# COGNIS_OPS_API_TOKEN are set, otherwise falls through to upstream's
+# opensre CLI (parity).
+ADD . /deps/agent
+RUN pip install -e /deps/agent --no-deps && pip install httpx>=0.27.0
+
+# Override the upstream ENTRYPOINT/CMD to invoke the Cognis wrapper.
+CMD ["python", "-m", "app.cognis.cli"]
