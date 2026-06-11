@@ -7,6 +7,17 @@ on:
     branches: [cognis/main]
 
 jobs:
+  # Gate-1 ops AR-4: fail fast if a rebase/rebuild drops the telemetry unsets
+  # (SENTRY_DSN, LANGSMITH_API_KEY, LANGCHAIN_TRACING_V2) or COGNIS_BRANDING
+  # from the Cognis release image. Stdlib-only script, no project install.
+  telemetry-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Assert Dockerfile.cognis telemetry unsets + branding default
+        run: python3 tools/check_dockerfile_cognis.py Dockerfile.cognis
+
   license:
     runs-on: ubuntu-latest
     steps:

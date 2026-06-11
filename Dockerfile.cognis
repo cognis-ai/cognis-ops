@@ -4,7 +4,10 @@
 # (app.cognis.cli:main) + COGNIS_BRANDING=on default + Sentry/LangSmith DSNs
 # explicitly UNSET per cognis-platform/docs/specs/cost-policy.md.
 # =============================================================================
-FROM langchain/langgraph-api:3.11 AS release
+# Base tag = Python minor version, same scheme as upstream's root Dockerfile
+# (langchain/langgraph-api:3.11). pyproject.toml requires-python = ">=3.12",
+# so 3.11 can't install the package; 3.12 is the matching documented variant.
+FROM langchain/langgraph-api:3.12 AS release
 
 LABEL maintainer="Cognis AI <support@cognisai.com>"
 LABEL org.opencontainers.image.source="https://github.com/cognis-ai/cognis-ops"

@@ -27,8 +27,12 @@ class CognisBrand:
     support_email: str = "support@cognisai.com"
     docs_url: str = "https://cognisai.com/docs/ops"
     portal_url: str = "https://app.cognisai.com/dashboard/ops"
-    banner_color_primary: str = "ansiblue"
-    banner_color_accent: str = "ansigreen"
+    # rich-valid color names (gate2 ops B1: the previous prompt_toolkit names
+    # "ansiblue"/"ansigreen" raise rich.color.ColorParseError). Renderers must
+    # resolve via resolve_banner_color() so a bad env override degrades to
+    # uncolored output instead of crashing the banner.
+    banner_color_primary: str = "blue"
+    banner_color_accent: str = "green"
 
 
 def load_brand() -> CognisBrand:
@@ -46,6 +50,27 @@ def load_brand() -> CognisBrand:
             "COGNIS_BANNER_COLOR_ACCENT", CognisBrand.banner_color_accent
         ),
     )
+
+
+def resolve_banner_color(name: str) -> str | None:
+    """Return ``name`` if rich can parse it as a color, else ``None``.
+
+    Safe-fallback contract per gate2 ops verification (B1): banner renderers
+    pass the env-driven color through this resolver and emit *uncolored*
+    output when it returns ``None`` — a typo'd ``COGNIS_BANNER_COLOR_*``
+    (or a missing rich install) must never raise ``ColorParseError`` at the
+    customer. Branding-off output is unaffected: this is only consulted
+    behind the ``branding_enabled()`` gate.
+    """
+    if not name:
+        return None
+    try:
+        from rich.color import Color
+
+        Color.parse(name)
+    except Exception:
+        return None
+    return name
 
 
 def branding_enabled() -> bool:
