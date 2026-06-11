@@ -70,6 +70,25 @@ def test_dockerfile_cognis_defaults_branding_on(dockerfile_path: Path) -> None:
     assert "COGNIS_BRANDING=on" in content, "Cognis image must default to branded output"
 
 
+def test_dockerfile_cognis_ships_full_brand_env(dockerfile_path: Path) -> None:
+    """Gate-2 ops B2: the image must be brand-self-describing — every
+    CognisBrand env var ships in the ENV block so a sub-brand rename is
+    env-only. Banner color hex is token-sourced from
+    cognis-platform/packages/design-tokens/tokens.json
+    (color.brand.primary / color.brand.accent-pop)."""
+    content = dockerfile_path.read_text()
+    assert 'COGNIS_PRODUCT_NAME="Cognis Ops"' in content
+    assert 'COGNIS_PRODUCT_TAGLINE="Investigates incidents, publishes the RCA."' in content
+    assert "COGNIS_PRODUCT_JOB=" in content
+    assert 'COGNIS_SUPPORT_EMAIL="support@cognisai.com"' in content
+    assert 'COGNIS_DOCS_URL="https://cognisai.com/docs/ops"' in content
+    assert 'COGNIS_PORTAL_URL="https://app.cognisai.com/dashboard/ops"' in content
+    # token: color.brand.primary
+    assert 'COGNIS_BANNER_COLOR_PRIMARY="#0099ff"' in content
+    # token: color.brand.accent-pop
+    assert 'COGNIS_BANNER_COLOR_ACCENT="#cbff97"' in content
+
+
 def test_dockerfile_cognis_uses_cognis_entrypoint(dockerfile_path: Path) -> None:
     """The image must launch the Cognis CLI wrapper, not upstream's CMD."""
     content = dockerfile_path.read_text()

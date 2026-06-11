@@ -10,7 +10,7 @@ This repo is the **runtime binary** customers run on their own infrastructure. S
 
 ## What's in this repo
 
-This is a soft fork of [`Tracer-Cloud/opensre`](https://github.com/Tracer-Cloud/opensre). The upstream is excellent (LangGraph pipeline, broad integration catalog); the Cognis layer adds:
+This is a soft fork of [`Tracer-Cloud/opensre`](https://github.com/Tracer-Cloud/opensre). The upstream is excellent (LangGraph pipeline, broad integration catalog); the Cognis layer adds: <!-- upstream-ok -->
 
 - A **central control plane**: integrations, plan caps, and investigations are managed in one portal across every Cognis Ops instance you run.
 - **Per-tenant integration secrets, envelope-encrypted at rest** in Cognis Bridge. The bot decrypts in-memory only.
@@ -18,7 +18,7 @@ This is a soft fork of [`Tracer-Cloud/opensre`](https://github.com/Tracer-Cloud/
 - **LLM calls routed through `llm.cognisai.com`** (LiteLLM proxy) so observability (Langfuse), per-tenant billing, and the no-direct-provider rule all hold without code edits.
 - **No telemetry leak**: `SENTRY_DSN` + `LANGSMITH_API_KEY` left unset by the Cognis Dockerfile per `cognis-platform/docs/specs/cost-policy.md`.
 
-The fork stays close to upstream. Everything Cognis-specific lives under `app/cognis/`, `Dockerfile.cognis`, and `COGNIS-README.md`. The rest is upstream opensre, rebased monthly.
+The fork stays close to upstream. Everything Cognis-specific lives under `app/cognis/`, `Dockerfile.cognis`, and `COGNIS-README.md`. The rest is upstream opensre, rebased monthly. <!-- upstream-ok -->
 
 ---
 
@@ -53,8 +53,8 @@ export COGNIS_BRIDGE_URL=https://bridge.cognisai.com
 export COGNIS_OPS_API_TOKEN=<your bot token from the portal>
 python -m app.cognis.cli
 
-# Stock-opensre parity mode (no Cognis env set)
-python -m app.cognis.cli   # falls through to upstream's opensre CLI
+# Stock upstream parity mode (no Cognis env set)
+python -m app.cognis.cli   # falls through to the upstream CLI
 ```
 
 ### Getting a bot token
@@ -113,7 +113,7 @@ These are baked into the system prompt the bot loads from Bridge (`COGNIS_OPS_PR
 
 ## License
 
-Apache-2.0 throughout. Upstream's LICENSE applies to the opensre codebase; the Cognis layer (`app/cognis/`, `Dockerfile.cognis`, `COGNIS-README.md`) is Apache-2.0 as well, copyright Cognis AI.
+Apache-2.0 throughout. Upstream's LICENSE applies to the opensre codebase; the Cognis layer (`app/cognis/`, `Dockerfile.cognis`, `COGNIS-README.md`) is Apache-2.0 as well, copyright Cognis AI. <!-- upstream-ok -->
 
 ---
 
@@ -122,4 +122,4 @@ Apache-2.0 throughout. Upstream's LICENSE applies to the opensre codebase; the C
 - **Docs**: <https://cognisai.com/docs/ops>
 - **Portal**: <https://app.cognisai.com/dashboard/ops>
 - **Support**: <support@cognisai.com>
-- **Upstream community** (for opensre-specific questions): see upstream's README.
+- **Upstream community** (for opensre-specific questions): see upstream's README. <!-- upstream-ok -->

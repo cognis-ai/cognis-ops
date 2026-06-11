@@ -25,11 +25,23 @@ LABEL date=${BUILD_DATE}
 # Cognis defaults — overridable at runtime via env. The DSN/key absence
 # entries below are explicit reminders, not requirements (the SDKs are inert
 # without them set anyway). Per cost-policy.md.
+# The full COGNIS_PRODUCT_* set ships here so the image is self-describing
+# and a sub-brand rename stays env-only (gate2 ops B2).
+# Banner color hex is token-sourced — do not hand-edit; provenance:
+#   COGNIS_BANNER_COLOR_PRIMARY = color.brand.primary     (#0099ff)
+#   COGNIS_BANNER_COLOR_ACCENT  = color.brand.accent-pop  (#cbff97)
+#   from cognis-platform/packages/design-tokens/tokens.json (Ordina system).
+# Hex lives ONLY in this config layer; the in-code dataclass defaults stay
+# terminal-safe rich color names with an uncolored fallback (gate2 ops B1).
 ENV COGNIS_BRANDING=on \
     COGNIS_PRODUCT_NAME="Cognis Ops" \
+    COGNIS_PRODUCT_TAGLINE="Investigates incidents, publishes the RCA." \
+    COGNIS_PRODUCT_JOB="Picks up the alert, walks your logs and metrics, hands you the root cause and a recommended next step." \
     COGNIS_DOCS_URL="https://cognisai.com/docs/ops" \
     COGNIS_PORTAL_URL="https://app.cognisai.com/dashboard/ops" \
     COGNIS_SUPPORT_EMAIL="support@cognisai.com" \
+    COGNIS_BANNER_COLOR_PRIMARY="#0099ff" \
+    COGNIS_BANNER_COLOR_ACCENT="#cbff97" \
     SENTRY_DSN="" \
     LANGSMITH_API_KEY="" \
     LANGCHAIN_TRACING_V2="false"

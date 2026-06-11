@@ -18,6 +18,18 @@ jobs:
       - name: Assert Dockerfile.cognis telemetry unsets + branding default
         run: python3 tools/check_dockerfile_cognis.py Dockerfile.cognis
 
+  # Gate-2 ops B5: customer-facing strings in the Cognis layer (app/cognis/**
+  # string literals minus docstrings, COGNIS-README.md minus marked
+  # attribution lines) must never carry upstream brand residue
+  # ((?i)opensre|tracer). Stdlib-only script, no project install.
+  brand-residue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Assert no upstream brand residue in customer-facing strings
+        run: python3 tools/check_brand_residue.py
+
   license:
     runs-on: ubuntu-latest
     steps:
