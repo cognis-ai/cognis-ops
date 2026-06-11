@@ -1,0 +1,105 @@
+name: Publish GHCR image
+
+# Builds the Cognis Ops release image (Dockerfile.cognis) and pushes it to
+# ghcr.io/cognis-ai/ops — the §1.9 "customer-run published image" prerequisite
+# (deployment-map: cognis/ops never built; ops AR-1 / Gate-1 defect 7 base fix
+# rides in Dockerfile.cognis itself, guarded below before any push).
+#
+# Naming follows cognis-platform/docs/plans/build/deployment-map.md §4.1:
+# ghcr.io/cognis-ai/<name>:<git-sha> + :<semver>; Coolify references digests,
+# not tags, so the pushed digest is emitted to the job summary.
+#
+# Base image langchain/langgraph-api:3.12 is a version-pinned tag (upstream's
+# documented scheme); no :latest risk was flagged for ops in gate1/gate2, so
+# no digest pin is forced here.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      extra_tag:
+        description: "Optional extra image tag to publish (e.g. staging)."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-ghcr-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  IMAGE: ghcr.io/cognis-ai/ops
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Never publish an image that lost the telemetry unsets / branding
+      # default (Gate-1 ops AR-4) — same stdlib guard as the license-gate job.
+      - name: Assert Dockerfile.cognis telemetry unsets + branding default
+        run: python3 tools/check_dockerfile_cognis.py Dockerfile.cognis
+
+      - name: Assert no upstream brand residue in customer-facing strings
+        run: python3 tools/check_brand_residue.py
+
+      - name: Resolve build date
+        id: build_date
+        shell: bash
+        run: echo "date=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve image tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=ref,event=tag
+            type=sha,format=short
+            type=raw,value=${{ inputs.extra_tag }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.extra_tag != '' }}
+
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.cognis
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            BRANCH=${{ github.ref_name }}
+            COMMIT=${{ github.sha }}
+            BUILD_DATE=${{ steps.build_date.outputs.date }}
+
+      # Coolify apps deploy by digest (deployment-map §4.1) — surface it.
+      - name: Emit image digest
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "## Published ${IMAGE}"
+            echo
+            echo "- Digest: \`${{ steps.push.outputs.digest }}\`"
+            echo "- Tags:"
+            echo '```'
+            echo "${{ steps.meta.outputs.tags }}"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
