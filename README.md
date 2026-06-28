@@ -1,3 +1,7 @@
+# DEPRECATED ⚰️
+
+Retired. Cognis = Voice / Chat / Brain / Security. Agent-memory absorbed by the Brain (mem0 + pgvector) + Chat.
+
 <div align="center">
 
 <p align="center">
